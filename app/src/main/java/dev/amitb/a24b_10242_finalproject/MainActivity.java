@@ -13,6 +13,7 @@ import dev.amitb.groupedlistmodule.SortCriteria;
 import dev.amitb.groupedlistmodule.SortedListAdapter;
 import dev.amitb.groupedlistmodule.SortedRecyclerView;
 
+
 public class MainActivity extends AppCompatActivity {
 
     private SortedRecyclerView recyclerView;
