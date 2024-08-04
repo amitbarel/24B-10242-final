@@ -4,73 +4,71 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 public class SortedListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private List<ListItem> items; // List of ListItem (headers and items)
+
+    private List<ListItem> items = new ArrayList<>();
     private SortCriteria sortCriteria;
-    private String headerText;
 
-    public SortedListAdapter(List<Item> itemList) {
-        this.sortCriteria = null;
-        this.items = new ArrayList<>();
-        groupItems(itemList);
+    public SortedListAdapter(List<Item> items) {
+        setItems(items);
     }
 
-    public SortedListAdapter(List<Item> itemList, SortCriteria sortCriteria) {
-        this.sortCriteria = sortCriteria;
-        this.items = new ArrayList<>();
-        groupItems(itemList);
-    }
-
-    @NonNull
-    @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if (viewType == ListItem.TYPE_HEADER) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.header_view, parent, false);
-            return new HeaderViewHolder(view);
-        } else {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_view, parent, false);
-            return new ItemViewHolder(view);
-        }
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        ListItem listItem = items.get(position);
-        if (listItem.getType() == ListItem.TYPE_HEADER) {
-            ((HeaderViewHolder) holder).bind((String) listItem.getData());
-        } else {
-            ((ItemViewHolder) holder).bind((Item) listItem.getData());
-        }
-    }
-
-    @Override
-    public int getItemCount() {
-        return items.size();
-    }
-
-    @Override
-    public int getItemViewType(int position) {
-        return items.get(position).getType();
-    }
-
-    // Method to set sort criteria
     public void setSortCriteria(SortCriteria sortCriteria) {
         this.sortCriteria = sortCriteria;
-        groupItems(new ArrayList<>(extractItems())); // Rebuild items list
-        notifyDataSetChanged(); // Notify adapter of changes
+        groupItems(extractItems());
     }
 
-    public void updateHeaderText(String headerText) {
-        this.headerText = headerText;
-        notifyDataSetChanged(); // Notify adapter that header text has changed
+    public void setItems(List<Item> items) {
+        this.items = new ArrayList<>();
+        for (Item item : items) {
+            this.items.add(new ListItem(item, ListItem.TYPE_ITEM));
+        }
+        groupItems(extractItems());
     }
+
+    private void groupItems(List<Item> itemList) {
+        List<ListItem> newItems = new ArrayList<>();
+
+        if (sortCriteria == SortCriteria.BY_CATEGORY) {
+            itemList.sort(Comparator.comparing(Item::getCategory));
+        } else if (sortCriteria == SortCriteria.BY_NAME) {
+            itemList.sort(Comparator.comparing(Item::getName));
+        } else if (sortCriteria == SortCriteria.BY_PRICE) {
+            itemList.sort(Comparator.comparing(Item::getPrice));
+        }
+
+        String currentGroup = null;
+        for (Item item : itemList) {
+            String group;
+            if (sortCriteria == SortCriteria.BY_CATEGORY) {
+                group = item.getCategory();
+            } else if (sortCriteria == SortCriteria.BY_NAME) {
+                group = item.getName().substring(0, 1);
+            } else {
+                group = String.valueOf(item.getPrice());
+            }
+
+            if (!group.equals(currentGroup)) {
+                newItems.add(new ListItem(group, ListItem.TYPE_HEADER));
+                currentGroup = group;
+            }
+            newItems.add(new ListItem(item, ListItem.TYPE_ITEM));
+        }
+
+        items.clear();
+        items.addAll(newItems);
+    }
+
 
     private List<Item> extractItems() {
         List<Item> itemList = new ArrayList<>();
@@ -82,62 +80,60 @@ public class SortedListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         return itemList;
     }
 
-    private void groupItems(List<Item> itemList) {
-        List<ListItem> newItems = new ArrayList<>(); // New list to avoid modifying existing list
-
-        if (SortCriteria.BY_CATEGORY.equals(sortCriteria)) {
-            Collections.sort(itemList, new Comparator<Item>() {
-                @Override
-                public int compare(Item item1, Item item2) {
-                    return item1.getCategory().compareTo(item2.getCategory());
-                }
-            });
-        } else if (SortCriteria.BY_NAME.equals(sortCriteria)) {
-            Collections.sort(itemList, new Comparator<Item>() {
-                @Override
-                public int compare(Item item1, Item item2) {
-                    return item1.getName().compareTo(item2.getName());
-                }
-            });
-        }
-
-        String currentGroup = null;
-        for (Item item : itemList) {
-            String group = (SortCriteria.BY_CATEGORY.equals(sortCriteria)) ? item.getCategory() : item.getName().substring(0, 1); // First letter
-            if (!group.equals(currentGroup)) {
-                newItems.add(new ListItem(group, ListItem.TYPE_HEADER)); // Add header
-                currentGroup = group;
-            }
-            newItems.add(new ListItem(item, ListItem.TYPE_ITEM)); // Add item
-        }
-
-        items.clear(); // Clear existing items
-        items.addAll(newItems); // Add new sorted and grouped items
+    @Override
+    public int getItemViewType(int position) {
+        return items.get(position).getType();
     }
 
-    private static class HeaderViewHolder extends RecyclerView.ViewHolder {
+    @NonNull
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        if (viewType == ListItem.TYPE_HEADER) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.header_view, parent, false);
+            return new HeaderViewHolder(view);
+        } else {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_view, parent, false);
+            return new ItemViewHolder(view);
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        ListItem listItem = items.get(position);
+        if (holder instanceof HeaderViewHolder) {
+            ((HeaderViewHolder) holder).headerText.setText((String) listItem.getData());
+        } else if (holder instanceof ItemViewHolder) {
+            Item item = (Item) listItem.getData();
+            ((ItemViewHolder) holder).itemName.setText(item.getName());
+            ((ItemViewHolder) holder).itemCategory.setText(item.getCategory());
+            ((ItemViewHolder) holder).itemPrice.setText(String.format("$%.2f", item.getPrice()));
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        return items.size();
+    }
+
+    static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView headerText;
 
-        public HeaderViewHolder(View itemView) {
+        HeaderViewHolder(View itemView) {
             super(itemView);
             headerText = itemView.findViewById(R.id.headerText);
         }
-
-        public void bind(String text) {
-            headerText.setText(text);
-        }
     }
 
-    private static class ItemViewHolder extends RecyclerView.ViewHolder {
+    static class ItemViewHolder extends RecyclerView.ViewHolder {
+        TextView itemCategory;
         TextView itemName;
+        TextView itemPrice;
 
-        public ItemViewHolder(View itemView) {
+        ItemViewHolder(View itemView) {
             super(itemView);
             itemName = itemView.findViewById(R.id.itemName);
-        }
-
-        public void bind(Item item) {
-            itemName.setText(item.getName());
+            itemPrice = itemView.findViewById(R.id.itemPrice);
+            itemCategory = itemView.findViewById(R.id.itemCategory);
         }
     }
 }

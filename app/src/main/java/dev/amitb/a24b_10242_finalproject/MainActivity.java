@@ -15,32 +15,35 @@ import dev.amitb.groupedlistmodule.SortedRecyclerView;
 
 public class MainActivity extends AppCompatActivity {
 
+    private SortedRecyclerView recyclerView;
+    private SortedListAdapter adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        SortedRecyclerView recyclerView = findViewById(R.id.recyclerView);
+        recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         List<Item> items = createSampleData();
 
-        SortedListAdapter adapter = new SortedListAdapter(items);
+        adapter = new SortedListAdapter(items);
         adapter.setSortCriteria(recyclerView.getSortCriteria());
-        adapter.setSortCriteria(SortCriteria.BY_NAME);
+        adapter.setSortCriteria(SortCriteria.BY_PRICE);
         recyclerView.setAdapter(adapter);
     }
 
     private List<Item> createSampleData() {
         List<Item> items = new ArrayList<>();
-        items.add(new Item("Apple", "Fruit"));
-        items.add(new Item("Tomato", "Vegetable"));
-        items.add(new Item("Mango", "Fruit"));
-        items.add(new Item("Butter", "Dairy"));
-        items.add(new Item("Banana", "Fruit"));
-        items.add(new Item("Cucumber", "Vegetable"));
-        items.add(new Item("Milk", "Dairy"));
-        items.add(new Item("Carrot", "Vegetable"));
+        items.add(new Item("Apple", "Fruit", 1.20));
+        items.add(new Item("Tomato", "Vegetable", 0.85));
+        items.add(new Item("Mango", "Fruit", 1.75));
+        items.add(new Item("Butter", "Dairy", 2.80));
+        items.add(new Item("Banana", "Fruit", 0.75));
+        items.add(new Item("Cucumber", "Vegetable", 0.90));
+        items.add(new Item("Milk", "Dairy", 1.40));
+        items.add(new Item("Carrot", "Vegetable", 1.00));
         return items;
     }
 }

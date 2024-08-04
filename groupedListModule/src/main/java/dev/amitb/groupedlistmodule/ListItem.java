@@ -1,7 +1,6 @@
 package dev.amitb.groupedlistmodule;
 
 public class ListItem {
-
     public static final int TYPE_HEADER = 0;
     public static final int TYPE_ITEM = 1;
 
