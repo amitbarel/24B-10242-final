@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SortedRecyclerView">
+        <attr name="sortCriteria">
+            <enum name="by_name" value="0"/>
+            <enum name="by_category" value="1"/>
+        </attr>
+    </declare-styleable>
+</resources>
