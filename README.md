@@ -23,7 +23,7 @@ To integrate GroupedListModule into your project using JitPack, follow these ste
     allprojects {
         repositories {
             ...
-            maven { url 'https://jitpack.io' }
+            maven { url =uri("https://jitpack.io") }
         }
     }
     ```
