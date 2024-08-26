@@ -1,4 +1,4 @@
-# GroupedListModule
+# GroupedListModule 🛒📊
 
 GroupedListModule is an Android library for creating a grouped list with sorting functionality. This module supports grouping items by category or the first letter of their name, and allows for sorting items within each group by name or price.
 
